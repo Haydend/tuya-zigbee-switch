@@ -457,6 +457,9 @@ hal_zigbee_cmd_result_t cover_cluster_callback(zigbee_cover_cluster *cluster,
                                                uint8_t command_id,
                                                void *cmd_payload,
                                                uint16_t cmd_payload_len) {
+                                                printf("Cover Cluster Back hit\r\n");
+
+                                                printf("Length %d\r\n", cmd_payload_len);
     switch (command_id) {
     case ZCL_CMD_WINDOW_COVERING_UP_OPEN:
         cover_open(cluster);
@@ -472,10 +475,12 @@ hal_zigbee_cmd_result_t cover_cluster_callback(zigbee_cover_cluster *cluster,
             break;
         }
         if (cmd_payload == NULL || cmd_payload_len < 1) {
+          printf("Malformed\r\n");
             return HAL_ZIGBEE_MALFORMED_COMMAND;
         }
 
         uint8_t target_percentage = *((uint8_t *)cmd_payload);
+        printf("target_percentage %d\r\n", target_percentage);
         if (target_percentage > 100) {
             return HAL_ZIGBEE_INVALID_VALUE;
         }
@@ -495,6 +500,7 @@ hal_zigbee_cmd_result_t cover_cluster_callback_trampoline(uint8_t endpoint,
                                                           uint8_t command_id,
                                                           void *cmd_payload,
                                                           uint16_t cmd_payload_len) {
+                                                          printf("Cover Cluster Tramp hit\r\n");
     return(cover_cluster_callback(cover_cluster_by_endpoint[endpoint], command_id,
                                   cmd_payload, cmd_payload_len));
 }
