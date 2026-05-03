@@ -90,7 +90,6 @@ static status_t cmd_callback(u8 endpoint, u16 clusterId, u8 cmdId,
 }
 
 static zclIncoming_t *cmd_incoming_from_addr_info(zclIncomingAddrInfo_t *pAddrInfo) {
-
     // Telink passes &zclIncoming_t.addrInfo into clusterAppCb, so recover the
     // enclosing message to access the raw payload bytes and length.
     return (zclIncoming_t *)((char *)pAddrInfo - offsetof(zclIncoming_t, addrInfo));
@@ -108,7 +107,7 @@ static status_t cmd_callback_window_covering(zclIncomingAddrInfo_t *pAddrInfo,
                                              u8 cmdId, void *cmdPayload) {
     zclIncoming_t *pInMsg = cmd_incoming_from_addr_info(pAddrInfo);
 
-    return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_CLOSURES_WINDOW_COVERING, cmdId, 
+    return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_CLOSURES_WINDOW_COVERING, cmdId,
                         pInMsg->pData, pInMsg->dataLen);
 }
 
@@ -118,6 +117,12 @@ static status_t cmd_callback_level_control(zclIncomingAddrInfo_t *pAddrInfo,
 
     return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_GEN_LEVEL_CONTROL, cmdId,
                         pInMsg->pData, pInMsg->dataLen);
+
+    // cmd_incoming_from_addr_info didn't work here for some reason and I had to use
+    // the cmdPayload directly. Not sure why, I don't have serial logs to investigate.
+    // return cmd_callback(pAddrInfo->dstEp, ZCL_CLUSTER_CLOSURES_WINDOW_COVERING,
+    //                     cmdId, pInMsg->pData, pInMsg->dataLen);
+    //                     cmdId, cmdPayload, 1);
 }
 
 static status_t cmd_callback_poll_control(zclIncomingAddrInfo_t *pAddrInfo,

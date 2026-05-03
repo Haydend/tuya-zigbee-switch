@@ -28,19 +28,14 @@ _CODE_ZCL_ static status_t zcl_windowCovering_custom_cmdHandler(zclIncoming_t *i
         return(ZCL_STA_UNSUP_CLUSTER_COMMAND);
     }
 
-    
-    u8 cmdPayload;
-    memset((u8 *)&cmdPayload, 0, sizeof(u8));
-
+    void *payload = NULL;
     switch (incoming->hdr.cmd) {
     case ZCL_CMD_UP_OPEN:
     case ZCL_CMD_DOWN_CLOSE:
     case ZCL_CMD_STOP:
         break;
     case ZCL_CMD_GO_TO_LIFT_PERCENTAGE:
-        printf("Think cmd payload is %d \r\n", &incoming->pData);    
-        cmdPayload = (u8)&incoming->pData;
-        
+        payload = (void *)incoming->pData;
         break;
     default:
         return(ZCL_STA_UNSUP_CLUSTER_COMMAND);
@@ -50,15 +45,7 @@ _CODE_ZCL_ static status_t zcl_windowCovering_custom_cmdHandler(zclIncoming_t *i
         return(ZCL_STA_FAILURE);
     }
 
-    zclIncomingAddrInfo_t addr;
-    addr.dirCluster = incoming->hdr.frmCtrl.bf.dir;
-    addr.profileId  = incoming->msg->indInfo.profile_id;
-    addr.srcAddr    = incoming->msg->indInfo.src_short_addr;
-    addr.dstAddr    = incoming->msg->indInfo.dst_addr;
-    addr.srcEp      = incoming->msg->indInfo.src_ep;
-    addr.dstEp      = incoming->msg->indInfo.dst_ep;
-
-    return(incoming->clusterAppCb(&(incoming->addrInfo), incoming->hdr.cmd, &cmdPayload));
+    return(incoming->clusterAppCb(&(incoming->addrInfo), incoming->hdr.cmd, payload));
 
     //return(incoming->clusterAppCb(&addr, incoming->hdr.cmd, payload));
 }
