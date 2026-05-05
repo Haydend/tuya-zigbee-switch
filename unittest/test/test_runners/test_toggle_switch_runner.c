@@ -11,7 +11,10 @@
 /*=======External Functions This Runner Calls=====*/
 extern void setUp(void);
 extern void tearDown(void);
-extern void test_encoder_pin_changing(void);
+extern void test_pin_goes_low(void);
+extern void test_pin_goes_low_no_on_press_callback_defined(void);
+extern void test_pin_goes_high(void);
+extern void test_pin_goes_high_no_on_release_callback_defined(void);
 
 
 /*=======Mock Management=====*/
@@ -79,7 +82,10 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 int main(void)
 {
   UnityBegin("test/test_toggle_switch.c");
-  run_test(test_encoder_pin_changing, "test_encoder_pin_changing", 49);
+  run_test(test_pin_goes_low, "test_pin_goes_low", 53);
+  run_test(test_pin_goes_low_no_on_press_callback_defined, "test_pin_goes_low_no_on_press_callback_defined", 69);
+  run_test(test_pin_goes_high, "test_pin_goes_high", 85);
+  run_test(test_pin_goes_high_no_on_release_callback_defined, "test_pin_goes_high_no_on_release_callback_defined", 104);
 
   CMock_Guts_MemFreeFinal();
   return UNITY_END();

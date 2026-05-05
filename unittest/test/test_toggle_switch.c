@@ -4,10 +4,20 @@
 #include "raptor/toggle_switch.h"
 #include "gpio_callback_helper.h"
 
+int on_press_cb_arg = 1;
 int on_press_calls = 0;
-void on_press(void)
-{
+void on_press(void) {
   on_press_calls++;
+}
+
+int on_release_cb_arg = 2;
+int on_release_calls = 0;
+void *on_release_last_arg = NULL;
+uint32_t on_release_last_on_time = 0;
+void on_release(void *arg, uint32_t on_time) {
+  on_release_calls++;
+  on_release_last_arg = arg;
+  on_release_last_on_time = on_time;
 }
 
 void setUp(void)
@@ -17,6 +27,7 @@ void setUp(void)
 
   // Reset
   on_press_calls = 0;
+  on_release_calls = 0;
 }
 
 void tearDown(void)
@@ -31,31 +42,75 @@ void _setup_toggle_switch(toggle_switch_t *toggle_switch)
   hal_gpio_callback_StubWithCallback(captured_hal_gpio_callback);
 
   toggle_switch_init(toggle_switch);
-  int arg = 1;
+  
   toggle_switch->on_press = (ev_button_callback_t)on_press;
-  toggle_switch->on_press_callback_param = &arg;
+  toggle_switch->on_press_callback_param = &on_press_cb_arg;
+
+  toggle_switch->on_release = (toggle_switch_on_release_callback_t)on_release;
+  toggle_switch->on_release_callback_param = &on_release_cb_arg;
 }
 
-void _trigger_pin_change(int callback_cnt, hal_gpio_pin_t pin, uint8_t new_state, uint32_t time_of_change)
+void test_pin_goes_low(void)
 {
-  // Prep For pin a changing
-  hal_millis_IgnoreAndReturn(time_of_change);
-  hal_gpio_read_ExpectAndReturn(pin, new_state);
-
-  // Trigger gpio change call back
-  trigger_pin_change(callback_cnt);
-}
-
-void test_encoder_pin_changing(void)
-{
-  // Setup Encoder, with all pins high
   toggle_switch_t toggle_switch = {};
   _setup_toggle_switch(&toggle_switch);
 
   // Pin changes
-  //hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 0);
+  hal_millis_IgnoreAndReturn(10);
+  hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 0);
   trigger_pin_change(0);
   
-  // no other callbacks triggered 
+  // on press callback triggered 
   TEST_ASSERT_EQUAL(1, on_press_calls);
+
+  TEST_ASSERT_EQUAL(0, on_release_calls);
+}
+
+void test_pin_goes_low_no_on_press_callback_defined(void)
+{
+  // Checking logic does not hit seg fault
+
+  toggle_switch_t toggle_switch = {};
+  _setup_toggle_switch(&toggle_switch);
+  toggle_switch.on_press = NULL;
+
+  // Pin changes
+  hal_millis_IgnoreAndReturn(10);
+  hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 0);
+  trigger_pin_change(0);
+  
+  // no seg fault
+}
+
+void test_pin_goes_high(void)
+{
+  toggle_switch_t toggle_switch = {};
+  _setup_toggle_switch(&toggle_switch);
+
+  // Pin changes
+  hal_millis_IgnoreAndReturn(10);
+  hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 1);
+  trigger_pin_change(0);
+  
+  // on release callback triggered once
+  TEST_ASSERT_EQUAL(1, on_release_calls);
+  TEST_ASSERT_EQUAL(2, *(int *)on_release_last_arg);
+  TEST_ASSERT_EQUAL(10, on_release_last_on_time);
+
+  //  on press callback not triggered 
+  TEST_ASSERT_EQUAL(0, on_press_calls);
+}
+
+void test_pin_goes_high_no_on_release_callback_defined(void)
+{
+  toggle_switch_t toggle_switch = {};
+  _setup_toggle_switch(&toggle_switch);
+  toggle_switch.on_release = NULL;
+
+  // Pin changes
+  hal_millis_IgnoreAndReturn(10);
+  hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 1);
+  trigger_pin_change(0);
+  
+  // No seg fault!
 }
