@@ -32,7 +32,8 @@ void _setup_toggle_switch(toggle_switch_t *toggle_switch)
 
   toggle_switch_init(toggle_switch);
   int arg = 1;
-  register_on_press_cb(toggle_switch, (ev_button_callback_t)on_press, &arg);
+  toggle_switch->on_press = (ev_button_callback_t)on_press;
+  toggle_switch->on_press_callback_param = &arg;
 }
 
 void _trigger_pin_change(int callback_cnt, hal_gpio_pin_t pin, uint8_t new_state, uint32_t time_of_change)

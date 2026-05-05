@@ -79,7 +79,7 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 int main(void)
 {
   UnityBegin("test/test_toggle_switch.c");
-  run_test(test_encoder_pin_changing, "test_encoder_pin_changing", 48);
+  run_test(test_encoder_pin_changing, "test_encoder_pin_changing", 49);
 
   CMock_Guts_MemFreeFinal();
   return UNITY_END();
