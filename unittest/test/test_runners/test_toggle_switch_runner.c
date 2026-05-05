@@ -3,34 +3,32 @@
 /*=======Automagically Detected Files To Include=====*/
 #include "unity.h"
 #include "cmock.h"
-#include "zigbee/step_command_handler.h"
+#include "raptor/toggle_switch.h"
+#include "gpio_callback_helper.h"
+#include "Mockgpio.h"
 #include "Mocktimer.h"
-#include "Mocktasks.h"
 
 /*=======External Functions This Runner Calls=====*/
 extern void setUp(void);
 extern void tearDown(void);
-extern void test_first_call_to_step_up_triggers_callback(void);
-extern void test_first_call_to_step_down_triggers_callback(void);
-extern void test_step_up_calls_very_close_together_are_debounced(void);
-extern void test_step_down_calls_very_close_together_are_debounced(void);
+extern void test_encoder_pin_changing(void);
 
 
 /*=======Mock Management=====*/
 static void CMock_Init(void)
 {
+  Mockgpio_Init();
   Mocktimer_Init();
-  Mocktasks_Init();
 }
 static void CMock_Verify(void)
 {
+  Mockgpio_Verify();
   Mocktimer_Verify();
-  Mocktasks_Verify();
 }
 static void CMock_Destroy(void)
 {
+  Mockgpio_Destroy();
   Mocktimer_Destroy();
-  Mocktasks_Destroy();
 }
 
 /*=======Test Reset Options=====*/
@@ -80,11 +78,8 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 /*=======MAIN=====*/
 int main(void)
 {
-  UnityBegin("test/test_step_command_handler.c");
-  run_test(test_first_call_to_step_up_triggers_callback, "test_first_call_to_step_up_triggers_callback", 35);
-  run_test(test_first_call_to_step_down_triggers_callback, "test_first_call_to_step_down_triggers_callback", 51);
-  run_test(test_step_up_calls_very_close_together_are_debounced, "test_step_up_calls_very_close_together_are_debounced", 67);
-  run_test(test_step_down_calls_very_close_together_are_debounced, "test_step_down_calls_very_close_together_are_debounced", 95);
+  UnityBegin("test/test_toggle_switch.c");
+  run_test(test_encoder_pin_changing, "test_encoder_pin_changing", 48);
 
   CMock_Guts_MemFreeFinal();
   return UNITY_END();

@@ -59,6 +59,11 @@ TARGET_BASE3=test_step_command_handler
 TARGET3 = $(TARGET_BASE3)$(TARGET_EXTENSION)
 SRC_FILES3=$(UNITY_ROOT)/src/unity.c $(SOURCES) $(SRC_DIR)/zigbee/step_command_handler.c test/test_step_command_handler.c  test/test_runners/test_step_command_handler_runner.c
 
+TARGET_BASE4=test_toggle_switch
+TARGET4 = $(TARGET_BASE4)$(TARGET_EXTENSION)
+SRC_FILES4=$(UNITY_ROOT)/src/unity.c $(SOURCES) $(SRC_DIR)/raptor/toggle_switch.c test/test_toggle_switch.c  test/test_runners/test_toggle_switch_runner.c
+
+
 INC_DIRS=-I$(UNITY_ROOT)/src -I$(SRC_DIR) -I$(SRC_DIR)/hal -I$(SRC_DIR)/zigbee -I$(CMOCK_ROOT)/src -I./mocks
 SYMBOLS=
 
@@ -94,10 +99,17 @@ test/$(TARGET_BASE2): ./$(TARGET2)
 test/$(TARGET_BASE3): ./$(TARGET3)
 	- ./$(TARGET3)
 
+./$(TARGET4): $(SRC_FILES4)
+	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES4) -o $(TARGET4)
+
+test/$(TARGET_BASE4): ./$(TARGET4)
+	- ./$(TARGET4)
+
 test/all: ./$(TARGET1) ./$(TARGET2) ./$(TARGET3)
 	- ./$(TARGET1)
 	- ./$(TARGET2)
 	- ./$(TARGET3)
+	- ./$(TARGET4)
 
 test/test_runners/test_encoder_runner.c: test/test_encoder.c
 	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/test_encoder.c test/test_runners/test_encoder_runner.c
@@ -107,6 +119,9 @@ test/test_runners/test_encoder_cluster_runner.c: test/test_encoder_cluster.c
 
 test/test_runners/test_step_command_handler_runner.c: test/test_step_command_handler.c
 	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/test_step_command_handler.c test/test_runners/test_step_command_handler_runner.c
+
+test/test_runners/test_toggle_switch_runner.c: test/test_toggle_switch.c
+	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/test_toggle_switch.c test/test_runners/test_toggle_switch_runner.c
 
 clean:
 	$(CLEANUP) $(TARGET1)
