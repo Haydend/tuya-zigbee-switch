@@ -84,6 +84,7 @@ for (let definition of tuyaDefinitions) {
 }
 
 const moesModels = [
+    "ERS-10TZBVB-AA",
     "SR-ZS",
     "ZG-101ZL",
     "ZS-EUB_1gang",
@@ -133,6 +134,7 @@ for (let definition of girierDefinitions) {
 }
 
 const lonsonhoModels = [
+    "TS0001",
     "TS130F_dual",
 ];
 
