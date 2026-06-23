@@ -6,8 +6,10 @@
 
 int on_press_cb_arg = 1;
 int on_press_calls = 0;
-void on_press(void) {
+void *on_press_last_arg = NULL;
+void on_press(void *arg) {
   on_press_calls++;
+  on_press_last_arg = arg;
 }
 
 int on_release_cb_arg = 2;
@@ -42,7 +44,7 @@ void _setup_toggle_switch(toggle_switch_t *toggle_switch)
   hal_gpio_callback_StubWithCallback(captured_hal_gpio_callback);
 
   toggle_switch_init(toggle_switch);
-  
+
   toggle_switch->on_press = (ev_button_callback_t)on_press;
   toggle_switch->on_press_callback_param = &on_press_cb_arg;
 
@@ -62,6 +64,7 @@ void test_pin_goes_low(void)
   
   // on press callback triggered 
   TEST_ASSERT_EQUAL(1, on_press_calls);
+  TEST_ASSERT_EQUAL(1, *(int *)on_press_last_arg);
 
   TEST_ASSERT_EQUAL(0, on_release_calls);
 }
@@ -113,4 +116,10 @@ void test_pin_goes_high_no_on_release_callback_defined(void)
   trigger_pin_change(0);
   
   // No seg fault!
+}
+
+void test_pin_changes_are_debounced(void) 
+{
+  
+
 }
