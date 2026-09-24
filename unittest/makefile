@@ -68,14 +68,21 @@ unity/%:
 cmock/%:
 	$(MAKE) -f cmock.mk $*
 
-all: unity/setup cmock/setup clean test/all
+$(UNITY_ROOT)/src:
+	$(MAKE) -f unity.mk setup
+
+$(CMOCK_ROOT)/src:
+	$(MAKE) -f cmock.mk setup
+
+all: clean test/all
 
 # Generate test runner from test source
-test/test_runners/%_runner.c: test/%.c
+test/test_runners/%_runner.c: test/%.c | $(UNITY_ROOT)/src
+	$(MKDIR) test/test_runners
 	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb $< $@
 
 # Compile and run a single test, example: make test/test_toggle_switch
-test/%: test/%.c test/test_runners/%_runner.c
+test/%: test/%.c test/test_runners/%_runner.c | $(UNITY_ROOT)/src $(CMOCK_ROOT)/src
 	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(COMMON_SRC) $(EXTRA_SRC_$*) $< test/test_runners/$*_runner.c -o $*$(TARGET_EXTENSION)
 	- ./$*$(TARGET_EXTENSION)
 
