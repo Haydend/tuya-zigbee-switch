@@ -16,3 +16,5 @@ __pycache__
 *.pyd
 
 unittest/*.out
+unittest/*.dSYM/
+unittest/test/test_runners/
