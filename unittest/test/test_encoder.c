@@ -3,35 +3,39 @@
 #include "Mocktimer.h"
 #include "base_components/encoder.h"
 #include "gpio_callback_helper.h"
+#include "spy.h"
 
-int on_rotate_ccw_calls = 0;
+typedef struct { void *arg; } encoder_cb_args_t;
+
+DECLARE_SPY(rotate_ccw_spy, encoder_cb_args_t);
+DECLARE_SPY(rotate_cw_spy, encoder_cb_args_t);
+DECLARE_SPY(press_spy, encoder_cb_args_t);
+DECLARE_SPY(rotate_ccw_while_pressed_spy, encoder_cb_args_t);
+DECLARE_SPY(rotate_cw_while_pressed_spy, encoder_cb_args_t);
+
 void on_rotate_ccw(void)
 {
-  on_rotate_ccw_calls++;
+  SPY_RECORD(rotate_ccw_spy, ((encoder_cb_args_t){ 0 }));
 }
 
-int on_rotate_cw_calls = 0;
 void on_rotate_cw(void)
 {
-  on_rotate_cw_calls++;
+  SPY_RECORD(rotate_cw_spy, ((encoder_cb_args_t){ 0 }));
 }
 
-int on_press_calls = 0;
 void on_press(void)
 {
-  on_press_calls++;
+  SPY_RECORD(press_spy, ((encoder_cb_args_t){ 0 }));
 }
 
-int on_rotate_ccw_while_pressed_calls = 0;
 void on_rotate_ccw_while_pressed(void)
 {
-  on_rotate_ccw_while_pressed_calls++;
+  SPY_RECORD(rotate_ccw_while_pressed_spy, ((encoder_cb_args_t){ 0 }));
 }
 
-int on_rotate_cw_while_pressed_calls = 0;
 void on_rotate_cw_while_pressed(void)
 {
-  on_rotate_cw_while_pressed_calls++;
+  SPY_RECORD(rotate_cw_while_pressed_spy, ((encoder_cb_args_t){ 0 }));
 }
 
 void setUp(void)
@@ -40,11 +44,11 @@ void setUp(void)
   printf("\r\n");
 
   // Reset
-  on_rotate_ccw_calls = 0;
-  on_rotate_cw_calls = 0;
-  on_press_calls = 0;
-  on_rotate_ccw_while_pressed_calls = 0;
-  on_rotate_cw_while_pressed_calls = 0;
+  SPY_RESET(rotate_ccw_spy);
+  SPY_RESET(rotate_cw_spy);
+  SPY_RESET(press_spy);
+  SPY_RESET(rotate_ccw_while_pressed_spy);
+  SPY_RESET(rotate_cw_while_pressed_spy);
 }
 
 void tearDown(void)
@@ -130,13 +134,13 @@ void test_encoder_pin_a_changing_before_pin_b(void)
   trigger_pin_change(1);
 
   // on_rotate_cw was called once
-  TEST_ASSERT_EQUAL(1, on_rotate_cw_calls);
+  ASSERT_SPY_CALLED(rotate_cw_spy, 1);
 
   // no other callbacks triggered 
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 // When Pin A changes from high to low, and then back again, we should do nothing
@@ -157,11 +161,11 @@ void test_encoder_only_pin_a_changes(void)
   trigger_pin_change(1);
 
   // no callbacks called
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 // When pin B changes from high to low, before pin A, Rotating CW callback should be triggered
@@ -182,13 +186,13 @@ void test_encoder_pin_b_changing_before_pin_a(void)
   trigger_pin_change(1);
 
   // on_rotate_ccw was called once
-  TEST_ASSERT_EQUAL(1, on_rotate_ccw_calls);
+  ASSERT_SPY_CALLED(rotate_ccw_spy, 1);
 
   // no other callbacks triggered 
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 // When pin B changes to low, and then back again, we should do nothing
@@ -209,11 +213,11 @@ void test_encoder_only_pin_b_changes(void)
   trigger_pin_change(1);
 
   // no callbacks called
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 void test_encoder_pin_sw_changes_to_low(void)
@@ -226,11 +230,11 @@ void test_encoder_pin_sw_changes_to_low(void)
   _trigger_pin_change(2, encoder.pin_sw, 0, 110);
 
   // Not callbacks triggered (we trigger on press cb on release)
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 void test_encoder_pin_sw_changes_to_high(void)
@@ -243,13 +247,13 @@ void test_encoder_pin_sw_changes_to_high(void)
   _trigger_pin_change(2, encoder.pin_sw, 1, 110);
 
   // On Press Callback triggered
-  TEST_ASSERT_EQUAL(1, on_press_calls);
+  ASSERT_SPY_CALLED(press_spy, 1);
 
   // no other callbacks called
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 // Pin changes are often noisy, this checks the debouncing logic filters the extra events
@@ -277,13 +281,13 @@ void test_encoder_sw_pressed_noisy(void)
   _trigger_pin_change(2, encoder.pin_sw, 1, 309);
 
   // On Press Callback triggered - Only once!
-  TEST_ASSERT_EQUAL(1, on_press_calls);
+  ASSERT_SPY_CALLED(press_spy, 1);
 
   // no other callbacks called
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 // When Pin A changes from high to low, before pin b, while sw is low, we should see this as Rotating CW while pressed
@@ -304,13 +308,13 @@ void test_encoder_pin_a_changing_before_pin_b_while_sw_is_low(void)
   trigger_pin_change(1);
 
   // CCW while pressed triggered
-  TEST_ASSERT_EQUAL(1, on_rotate_cw_while_pressed_calls);
+  ASSERT_SPY_CALLED(rotate_cw_while_pressed_spy, 1);
 
   // No other callbacks triggered
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }
 
 // When pin B changes from high to low, before pin A, Rotating CCW while pressed callback should be triggered
@@ -331,13 +335,13 @@ void test_encoder_pin_b_changing_before_pin_a_while_sw_is_low(void)
   trigger_pin_change(1);
 
   // CW while pressed triggered
-  TEST_ASSERT_EQUAL(1, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_CALLED(rotate_ccw_while_pressed_spy, 1);
 
   // No other callbacks triggered
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(press_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_while_pressed_spy);
 }
 
 // When sw is pressed and then rotated CW, pressed should not be triggered
@@ -362,10 +366,10 @@ void test_encoder_pressed_and_rotated__pressed_cb_not_triggered(void)
   _trigger_pin_change(2, encoder.pin_sw, 1, 400);
 
   // Action was seen as a roate cw while pressed, not a on press ... or any other event
-  TEST_ASSERT_EQUAL(1, on_rotate_cw_while_pressed_calls);
-  TEST_ASSERT_EQUAL(0, on_press_calls);
+  ASSERT_SPY_CALLED(rotate_cw_while_pressed_spy, 1);
+  ASSERT_SPY_NOT_CALLED(press_spy);
 
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_cw_calls);
-  TEST_ASSERT_EQUAL(0, on_rotate_ccw_while_pressed_calls);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_cw_spy);
+  ASSERT_SPY_NOT_CALLED(rotate_ccw_while_pressed_spy);
 }

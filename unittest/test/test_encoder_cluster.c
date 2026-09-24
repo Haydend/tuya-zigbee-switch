@@ -3,13 +3,15 @@
 #include "zigbee/consts.h"
 #include "Mockzigbee.h"
 #include "Mockstep_command_handler.h"
+#include "spy.h"
 
-int send_cmd_call_count = 0;
-hal_zigbee_cmd captured_commands[10];
+typedef struct { hal_zigbee_cmd cmd; } send_cmd_args_t;
+
+DECLARE_SPY(send_cmd_spy, send_cmd_args_t);
+
 hal_zigbee_status_t captured_send_cmd_to_bindings(const hal_zigbee_cmd *cmd, int cmock_num_calls)
 {
-  send_cmd_call_count++;
-  captured_commands[cmock_num_calls] = *cmd;
+  SPY_RECORD(send_cmd_spy, ((send_cmd_args_t){ .cmd = *cmd }));
   return HAL_ZIGBEE_OK;
 }
 
@@ -23,7 +25,7 @@ void setUp(void)
   // Put a space between tests for readability
   printf("\r\n");
 
-  send_cmd_call_count = 0;
+  SPY_RESET(send_cmd_spy);
   new_step_command_handler_Ignore();
 
   // Setup endpoint, cluster and encoder 
@@ -51,21 +53,21 @@ void _action_casues_sending_zigbee_command(ev_encoder_callback_t action, uint16_
   action(mock_encoder.callback_param);
 
   // Check one command was sent 
-  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_call_count, "Unexpected number of commands sent");
+  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_spy.calls, "Unexpected number of commands sent");
 
   // Check command was step brightnes up
-  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, captured_commands[0].endpoint);  
-  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, captured_commands[0].profile_id);  
-  TEST_ASSERT_EQUAL(cluster_id, captured_commands[0].cluster_id);  
-  TEST_ASSERT_EQUAL(command_id, captured_commands[0].command_id);
-  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, captured_commands[0].direction);
+  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, send_cmd_spy.history[0].cmd.endpoint);  
+  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, send_cmd_spy.history[0].cmd.profile_id);  
+  TEST_ASSERT_EQUAL(cluster_id, send_cmd_spy.history[0].cmd.cluster_id);  
+  TEST_ASSERT_EQUAL(command_id, send_cmd_spy.history[0].cmd.command_id);
+  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, send_cmd_spy.history[0].cmd.direction);
  
   if(payload_length != 0) {
-    TEST_ASSERT_EQUAL_INT8_ARRAY(payload, captured_commands[0].payload, payload_length);
+    TEST_ASSERT_EQUAL_INT8_ARRAY(payload, send_cmd_spy.history[0].cmd.payload, payload_length);
   }
 
 
-  TEST_ASSERT_EQUAL(payload_length, captured_commands[0].payload_len);
+  TEST_ASSERT_EQUAL(payload_length, send_cmd_spy.history[0].cmd.payload_len);
 }
 
 void test_encoder_is_clicked(void)
@@ -113,14 +115,14 @@ void test_brightness_step_command_handler_callback_with_positive_value(void)
   encoder_cluster.brightness_step_command_handler._callback(encoder_cluster.brightness_step_command_handler._callback_arg, 10, 1);
 
   // Check one command was sent 
-  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_call_count, "Unexpected number of commands sent");
+  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_spy.calls, "Unexpected number of commands sent");
 
   // Check command was step brightnes up
-  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, captured_commands[0].endpoint);  
-  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, captured_commands[0].profile_id);  
-  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LEVEL_CONTROL, captured_commands[0].cluster_id);  
-  TEST_ASSERT_EQUAL(ZCL_CMD_LEVEL_STEP, captured_commands[0].command_id);
-  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, captured_commands[0].direction);
+  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, send_cmd_spy.history[0].cmd.endpoint);  
+  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, send_cmd_spy.history[0].cmd.profile_id);  
+  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LEVEL_CONTROL, send_cmd_spy.history[0].cmd.cluster_id);  
+  TEST_ASSERT_EQUAL(ZCL_CMD_LEVEL_STEP, send_cmd_spy.history[0].cmd.command_id);
+  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, send_cmd_spy.history[0].cmd.direction);
  
   uint8_t payload[4];
     payload[0] = ZCL_LEVEL_MOVE_UP; // Step Mode
@@ -128,8 +130,8 @@ void test_brightness_step_command_handler_callback_with_positive_value(void)
     // Transistion Time
     payload[2] = 0x01; 
     payload[3] = 0;
-  TEST_ASSERT_EQUAL(4, captured_commands[0].payload_len);
-  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, captured_commands[0].payload, 4);
+  TEST_ASSERT_EQUAL(4, send_cmd_spy.history[0].cmd.payload_len);
+  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, send_cmd_spy.history[0].cmd.payload, 4);
 }
 
 void test_brightness_step_command_handler_callback_with_negative_value(void)
@@ -146,14 +148,14 @@ void test_brightness_step_command_handler_callback_with_negative_value(void)
   encoder_cluster.brightness_step_command_handler._callback(encoder_cluster.brightness_step_command_handler._callback_arg, -15, 1);
 
   // Check one command was sent 
-  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_call_count, "Unexpected number of commands sent");
+  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_spy.calls, "Unexpected number of commands sent");
 
   // Check command was step brightnes up
-  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, captured_commands[0].endpoint);  
-  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, captured_commands[0].profile_id);  
-  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LEVEL_CONTROL, captured_commands[0].cluster_id);  
-  TEST_ASSERT_EQUAL(ZCL_CMD_LEVEL_STEP, captured_commands[0].command_id);
-  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, captured_commands[0].direction);
+  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, send_cmd_spy.history[0].cmd.endpoint);  
+  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, send_cmd_spy.history[0].cmd.profile_id);  
+  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LEVEL_CONTROL, send_cmd_spy.history[0].cmd.cluster_id);  
+  TEST_ASSERT_EQUAL(ZCL_CMD_LEVEL_STEP, send_cmd_spy.history[0].cmd.command_id);
+  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, send_cmd_spy.history[0].cmd.direction);
  
   uint8_t payload[4];
     payload[0] = ZCL_LEVEL_MOVE_DOWN; // Step Mode
@@ -161,8 +163,8 @@ void test_brightness_step_command_handler_callback_with_negative_value(void)
     // Transistion Time
     payload[2] = 0x01; 
     payload[3] = 0;
-  TEST_ASSERT_EQUAL(4, captured_commands[0].payload_len);
-  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, captured_commands[0].payload, 4);
+  TEST_ASSERT_EQUAL(4, send_cmd_spy.history[0].cmd.payload_len);
+  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, send_cmd_spy.history[0].cmd.payload, 4);
 }
 
 void test_encoder_is_rotated_cw_while_pressed(void)
@@ -203,14 +205,14 @@ void test_color_temp_step_command_handler_callback_with_positive_value(void)
   encoder_cluster.color_temp_step_command_handler._callback(encoder_cluster.color_temp_step_command_handler._callback_arg, 10, 1);
 
   // Check one command was sent 
-  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_call_count, "Unexpected number of commands sent");
+  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_spy.calls, "Unexpected number of commands sent");
 
   // Check command was step color temp up
-  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, captured_commands[0].endpoint);  
-  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, captured_commands[0].profile_id);  
-  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LIGHTING_COLOR_CONTROL, captured_commands[0].cluster_id);  
-  TEST_ASSERT_EQUAL(ZCL_CMD_LIGHTING_COLOR_STEP_TEMP, captured_commands[0].command_id);
-  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, captured_commands[0].direction);
+  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, send_cmd_spy.history[0].cmd.endpoint);  
+  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, send_cmd_spy.history[0].cmd.profile_id);  
+  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LIGHTING_COLOR_CONTROL, send_cmd_spy.history[0].cmd.cluster_id);  
+  TEST_ASSERT_EQUAL(ZCL_CMD_LIGHTING_COLOR_STEP_TEMP, send_cmd_spy.history[0].cmd.command_id);
+  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, send_cmd_spy.history[0].cmd.direction);
  
   // Little Endian (least significant byte first)
   uint8_t payload[9];
@@ -227,8 +229,8 @@ void test_color_temp_step_command_handler_callback_with_positive_value(void)
   // Maximum 
   payload[7] = 0xfe; 
   payload[8] = 0xff;
-  TEST_ASSERT_EQUAL(9, captured_commands[0].payload_len);
-  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, captured_commands[0].payload, 9);
+  TEST_ASSERT_EQUAL(9, send_cmd_spy.history[0].cmd.payload_len);
+  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, send_cmd_spy.history[0].cmd.payload, 9);
 }
 
 void test_color_temp_step_command_handler_callback_with_negative_value(void)
@@ -245,14 +247,14 @@ void test_color_temp_step_command_handler_callback_with_negative_value(void)
   encoder_cluster.color_temp_step_command_handler._callback(encoder_cluster.color_temp_step_command_handler._callback_arg, -10, 1);
 
   // Check one command was sent 
-  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_call_count, "Unexpected number of commands sent");
+  TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_spy.calls, "Unexpected number of commands sent");
 
   // Check command was step color temp up
-  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, captured_commands[0].endpoint);  
-  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, captured_commands[0].profile_id);  
-  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LIGHTING_COLOR_CONTROL, captured_commands[0].cluster_id);  
-  TEST_ASSERT_EQUAL(ZCL_CMD_LIGHTING_COLOR_STEP_TEMP, captured_commands[0].command_id);
-  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, captured_commands[0].direction);
+  TEST_ASSERT_EQUAL(mock_endpoint.endpoint, send_cmd_spy.history[0].cmd.endpoint);  
+  TEST_ASSERT_EQUAL(ZCL_HA_PROFILE, send_cmd_spy.history[0].cmd.profile_id);  
+  TEST_ASSERT_EQUAL(ZCL_CLUSTER_LIGHTING_COLOR_CONTROL, send_cmd_spy.history[0].cmd.cluster_id);  
+  TEST_ASSERT_EQUAL(ZCL_CMD_LIGHTING_COLOR_STEP_TEMP, send_cmd_spy.history[0].cmd.command_id);
+  TEST_ASSERT_EQUAL(HAL_ZIGBEE_DIR_CLIENT_TO_SERVER, send_cmd_spy.history[0].cmd.direction);
  
   // Little Endian (least significant byte first)
   uint8_t payload[9];
@@ -269,6 +271,6 @@ void test_color_temp_step_command_handler_callback_with_negative_value(void)
   // Maximum 
   payload[7] = 0xfe; 
   payload[8] = 0xff;
-  TEST_ASSERT_EQUAL(9, captured_commands[0].payload_len);
-  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, captured_commands[0].payload, 9);
+  TEST_ASSERT_EQUAL(9, send_cmd_spy.history[0].cmd.payload_len);
+  TEST_ASSERT_EQUAL_INT8_ARRAY(payload, send_cmd_spy.history[0].cmd.payload, 9);
 }
