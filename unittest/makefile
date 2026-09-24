@@ -57,7 +57,7 @@ TEST_TARGETS := $(patsubst %,%$(TARGET_EXTENSION),$(TEST_NAMES))
 # See test_extra_sources.mk — only needed for tests with non-standard deps.
 -include test_extra_sources.mk
 
-INC_DIRS=-I$(UNITY_ROOT)/src -I$(SRC_DIR) -I$(SRC_DIR)/hal -I$(SRC_DIR)/zigbee -I$(CMOCK_ROOT)/src -I./mocks
+INC_DIRS=-I$(UNITY_ROOT)/src -I$(SRC_DIR) -I$(SRC_DIR)/hal -I$(SRC_DIR)/zigbee -I$(CMOCK_ROOT)/src -I./mocks -I./test_helpers
 SYMBOLS=
 
 .PHONY: all clean ci test/all
