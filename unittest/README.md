@@ -11,7 +11,7 @@ make unittest/test/all
 ## Run all tests in a file
 
 ```
-make unittest/test/test_toggle_switch
+make unittest/test/test_push_button
 ```
 
 ## Run filtered tests
@@ -19,7 +19,7 @@ make unittest/test/test_toggle_switch
 Uses substring matching on test function names:
 
 ```
-make unittest/test/test_toggle_switch RUN_TEST=test_pin_goes_low
+make unittest/test/test_push_button RUN_TEST=test_pin_goes_low
 ```
 
 ## Interactive debugging with VS Code

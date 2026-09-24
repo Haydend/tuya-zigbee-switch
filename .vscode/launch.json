@@ -9,7 +9,7 @@
                 "test_encoder",
                 "test_encoder_cluster",
                 "test_step_command_handler",
-                "test_toggle_switch"
+                "test_push_button"
             ]
         },
         {

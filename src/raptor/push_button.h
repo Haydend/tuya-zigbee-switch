@@ -1,26 +1,26 @@
-#ifndef _TOGGLE_SWITCH_H_
-#define _TOGGLE_SWITCH_H_
+#ifndef _PUSH_BUTTON_H_
+#define _PUSH_BUTTON_H_
 
 #include "hal/gpio.h"
 #include <stdbool.h>
 
-typedef void (*ev_button_callback_t)(void *);
-typedef void (*toggle_switch_on_release_callback_t)(void *, uint32_t hold_time);
+typedef void (*push_button_on_press_callback_t)(void *);
+typedef void (*push_button_on_release_callback_t)(void *, uint32_t hold_time);
 
 typedef struct {
     hal_gpio_pin_t                      pin;
     bool                                pullUp; // Is pin pulled up
 
-    ev_button_callback_t                on_press;
+    push_button_on_press_callback_t     on_press;
     void *                              on_press_callback_param;
     uint32_t                            pressed_at_ms;
-    
-    toggle_switch_on_release_callback_t on_release;
+
+    push_button_on_release_callback_t   on_release;
     void *                              on_release_callback_param;
     uint32_t                            released_at_ms;
 
-} toggle_switch_t;
+} push_button_t;
 
-void toggle_switch_init(toggle_switch_t *toggle_switch, bool pullUp);
+void push_button_init(push_button_t *push_button, bool pullUp);
 
-#endif // _TOGGLE_SWITCH_H_
+#endif // _PUSH_BUTTON_H_

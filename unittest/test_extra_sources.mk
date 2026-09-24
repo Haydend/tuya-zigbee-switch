@@ -6,4 +6,4 @@
 
 EXTRA_SRC_test_encoder_cluster = ./mocks/Mockstep_command_handler.c $(SRC_DIR)/zigbee/encoder_cluster.c
 EXTRA_SRC_test_step_command_handler = $(SRC_DIR)/zigbee/step_command_handler.c
-EXTRA_SRC_test_toggle_switch = $(SRC_DIR)/raptor/toggle_switch.c
+EXTRA_SRC_test_push_button = $(SRC_DIR)/raptor/push_button.c
