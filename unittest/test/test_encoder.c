@@ -106,14 +106,14 @@ void _setup_encoder(encoder_t *encoder, uint8_t initial_sw_state)
   encoder_init(encoder);
 }
 
-void _trigger_pin_change(int callback_cnt, hal_gpio_pin_t pin, uint8_t new_state, uint32_t time_of_change)
+void _trigger_pin_change(hal_gpio_pin_t pin, uint8_t new_state, uint32_t time_of_change)
 {
   // Prep For pin a changing
   hal_millis_IgnoreAndReturn(time_of_change);
   hal_gpio_read_ExpectAndReturn(pin, new_state);
 
   // Trigger gpio change call back
-  trigger_pin_change(callback_cnt);
+  trigger_pin_change(pin);
 }
 
 // When Pin A changes from high to low, before pin b, we should see this as Rotating CW
@@ -126,12 +126,12 @@ void test_encoder_pin_a_changing_before_pin_b(void)
   // Pin A changes first
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 1);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
   
   // Then Pin B catches up
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_b);
 
   // on_rotate_cw was called once
   ASSERT_SPY_CALLED(rotate_cw_spy, 1);
@@ -153,12 +153,12 @@ void test_encoder_only_pin_a_changes(void)
   // Pin A changes
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 1);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
 
   // Pin A changes back
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 1);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 1);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
 
   // no callbacks called
   ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
@@ -178,12 +178,12 @@ void test_encoder_pin_b_changing_before_pin_a(void)
   // Pin B changes first
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 1);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
-  
+  trigger_pin_change(encoder.pin_b);
+
   // Then Pin A catches up
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
 
   // on_rotate_ccw was called once
   ASSERT_SPY_CALLED(rotate_ccw_spy, 1);
@@ -205,12 +205,12 @@ void test_encoder_only_pin_b_changes(void)
   // Pin B changes
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 1);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_b);
 
   // Pin B changes back
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 1);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 1);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_b);
 
   // no callbacks called
   ASSERT_SPY_NOT_CALLED(rotate_ccw_spy);
@@ -227,7 +227,7 @@ void test_encoder_pin_sw_changes_to_low(void)
   _setup_encoder(&encoder, 1);
 
   // Trigger pin sw change, to low, 100ms later
-  _trigger_pin_change(2, encoder.pin_sw, 0, 110);
+  _trigger_pin_change(encoder.pin_sw, 0, 110);
 
   // Not callbacks triggered (we trigger on press cb on release)
   ASSERT_SPY_NOT_CALLED(press_spy);
@@ -244,7 +244,7 @@ void test_encoder_pin_sw_changes_to_high(void)
   _setup_encoder(&encoder, 0);
 
   // Trigger pin sw change, to high, 100ms later
-  _trigger_pin_change(2, encoder.pin_sw, 1, 110);
+  _trigger_pin_change(encoder.pin_sw, 1, 110);
 
   // On Press Callback triggered
   ASSERT_SPY_CALLED(press_spy, 1);
@@ -265,20 +265,20 @@ void test_encoder_sw_pressed_noisy(void)
 
   // Trigger pin sw change, to low, 100ms later
   // Then retrigger a few times, as if the input is noisy
-  _trigger_pin_change(2, encoder.pin_sw, 0, 110);
-  _trigger_pin_change(2, encoder.pin_sw, 1, 111);
-  _trigger_pin_change(2, encoder.pin_sw, 0, 112);
-  _trigger_pin_change(2, encoder.pin_sw, 1, 113);
-  _trigger_pin_change(2, encoder.pin_sw, 0, 116);
-  _trigger_pin_change(2, encoder.pin_sw, 0, 119);
+  _trigger_pin_change(encoder.pin_sw, 0, 110);
+  _trigger_pin_change(encoder.pin_sw, 1, 111);
+  _trigger_pin_change(encoder.pin_sw, 0, 112);
+  _trigger_pin_change(encoder.pin_sw, 1, 113);
+  _trigger_pin_change(encoder.pin_sw, 0, 116);
+  _trigger_pin_change(encoder.pin_sw, 0, 119);
 
   // And then back to high, again with noise
-  _trigger_pin_change(2, encoder.pin_sw, 1, 300);
-  _trigger_pin_change(2, encoder.pin_sw, 0, 301);
-  _trigger_pin_change(2, encoder.pin_sw, 1, 303);
-  _trigger_pin_change(2, encoder.pin_sw, 0, 305);
-  _trigger_pin_change(2, encoder.pin_sw, 1, 307);
-  _trigger_pin_change(2, encoder.pin_sw, 1, 309);
+  _trigger_pin_change(encoder.pin_sw, 1, 300);
+  _trigger_pin_change(encoder.pin_sw, 0, 301);
+  _trigger_pin_change(encoder.pin_sw, 1, 303);
+  _trigger_pin_change(encoder.pin_sw, 0, 305);
+  _trigger_pin_change(encoder.pin_sw, 1, 307);
+  _trigger_pin_change(encoder.pin_sw, 1, 309);
 
   // On Press Callback triggered - Only once!
   ASSERT_SPY_CALLED(press_spy, 1);
@@ -300,12 +300,12 @@ void test_encoder_pin_a_changing_before_pin_b_while_sw_is_low(void)
   // Pin A changes first
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 1);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
   
   // Then Pin B catches up
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_b);
 
   // CCW while pressed triggered
   ASSERT_SPY_CALLED(rotate_cw_while_pressed_spy, 1);
@@ -327,12 +327,12 @@ void test_encoder_pin_b_changing_before_pin_a_while_sw_is_low(void)
   // Pin B changes first
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 1);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
-  
+  trigger_pin_change(encoder.pin_b);
+
   // Then Pin A catches up
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
 
   // CW while pressed triggered
   ASSERT_SPY_CALLED(rotate_ccw_while_pressed_spy, 1);
@@ -352,18 +352,18 @@ void test_encoder_pressed_and_rotated__pressed_cb_not_triggered(void)
   _setup_encoder(&encoder, 1);
 
   // Press Encoder
-  _trigger_pin_change(2, encoder.pin_sw, 0, 100);
+  _trigger_pin_change(encoder.pin_sw, 0, 100);
 
   // Rotate CW
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 1);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_a);
   hal_gpio_read_ExpectAndReturn(encoder.pin_a, 0);
   hal_gpio_read_ExpectAndReturn(encoder.pin_b, 0);
-  trigger_pin_change(1);
+  trigger_pin_change(encoder.pin_b);
 
   // Release Encoder
-  _trigger_pin_change(2, encoder.pin_sw, 1, 400);
+  _trigger_pin_change(encoder.pin_sw, 1, 400);
 
   // Action was seen as a roate cw while pressed, not a on press ... or any other event
   ASSERT_SPY_CALLED(rotate_cw_while_pressed_spy, 1);

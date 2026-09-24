@@ -5,9 +5,13 @@ gpio_callback_t gpio_callbacks[3];
 hal_gpio_pin_t gpio_pins[3];
 void *pin_args[3];
 
-void trigger_pin_change(int cb_cnt)
+void trigger_pin_change(hal_gpio_pin_t pin)
 {
-  gpio_callbacks[cb_cnt](gpio_pins[cb_cnt], pin_args[cb_cnt]);
+  for (int i = 0; i < 3; i++) {
+    if (gpio_pins[i] == pin && gpio_callbacks[i] != NULL) {
+      gpio_callbacks[i](pin, pin_args[i]);
+    }
+  }
 }
 
 void captured_hal_gpio_callback(hal_gpio_pin_t gpio_pin, gpio_callback_t callback, void *arg, int cmock_num_calls)

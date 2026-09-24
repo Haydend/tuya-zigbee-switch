@@ -60,7 +60,7 @@ void test_pin_goes_low(void)
   // Pin changes
   hal_millis_IgnoreAndReturn(10);
   hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 0);
-  trigger_pin_change(0);
+  trigger_pin_change(toggle_switch.pin);
   
   // Check on_press callback triggered with expected args
   ASSERT_SPY_CALLED(press_spy, 1);
@@ -81,7 +81,7 @@ void test_pin_goes_low_no_on_press_callback_defined(void)
   // Pin changes
   hal_millis_IgnoreAndReturn(10);
   hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 0);
-  trigger_pin_change(0);
+  trigger_pin_change(toggle_switch.pin);
   
   // no seg fault
 }
@@ -94,7 +94,7 @@ void test_pin_goes_high(void)
   // Pin changes
   hal_millis_IgnoreAndReturn(10);
   hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 1);
-  trigger_pin_change(0);
+  trigger_pin_change(toggle_switch.pin);
   
   // Check on_release callback triggered with expected args
   ASSERT_SPY_CALLED(release_spy, 1);
@@ -114,7 +114,7 @@ void test_pin_goes_high_no_on_release_callback_defined(void)
   // Pin changes
   hal_millis_IgnoreAndReturn(10);
   hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 1);
-  trigger_pin_change(0);
+  trigger_pin_change(toggle_switch.pin);
   
   // No seg fault!
 }
