@@ -67,6 +67,9 @@ void test_pin_goes_low(void)
   TEST_ASSERT_EQUAL(1, *(int *)on_press_last_arg);
 
   TEST_ASSERT_EQUAL(0, on_release_calls);
+
+  //  on release callback not triggered 
+  TEST_ASSERT_EQUAL(0, on_release_calls);
 }
 
 void test_pin_goes_low_no_on_press_callback_defined(void)
@@ -116,10 +119,4 @@ void test_pin_goes_high_no_on_release_callback_defined(void)
   trigger_pin_change(0);
   
   // No seg fault!
-}
-
-void test_pin_changes_are_debounced(void) 
-{
-  
-
 }

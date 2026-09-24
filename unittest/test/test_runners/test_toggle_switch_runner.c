@@ -15,7 +15,6 @@ extern void test_pin_goes_low(void);
 extern void test_pin_goes_low_no_on_press_callback_defined(void);
 extern void test_pin_goes_high(void);
 extern void test_pin_goes_high_no_on_release_callback_defined(void);
-extern void test_pin_changes_are_debounced(void);
 
 
 /*=======Mock Management=====*/
@@ -84,10 +83,9 @@ int main(void)
 {
   UnityBegin("test/test_toggle_switch.c");
   run_test(test_pin_goes_low, "test_pin_goes_low", 55);
-  run_test(test_pin_goes_low_no_on_press_callback_defined, "test_pin_goes_low_no_on_press_callback_defined", 72);
-  run_test(test_pin_goes_high, "test_pin_goes_high", 88);
-  run_test(test_pin_goes_high_no_on_release_callback_defined, "test_pin_goes_high_no_on_release_callback_defined", 107);
-  run_test(test_pin_changes_are_debounced, "test_pin_changes_are_debounced", 121);
+  run_test(test_pin_goes_low_no_on_press_callback_defined, "test_pin_goes_low_no_on_press_callback_defined", 75);
+  run_test(test_pin_goes_high, "test_pin_goes_high", 91);
+  run_test(test_pin_goes_high_no_on_release_callback_defined, "test_pin_goes_high_no_on_release_callback_defined", 110);
 
   CMock_Guts_MemFreeFinal();
   return UNITY_END();
