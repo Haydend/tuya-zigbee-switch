@@ -2,12 +2,14 @@
 #include "hal/printf_selector.h"
 #include "hal/tasks.h"
 #include "hal/timer.h"
+#include <stdbool.h>
 
 static void _gpio_callback(hal_gpio_pin_t pin, toggle_switch_t *toggle_switch);
 
-void toggle_switch_init(toggle_switch_t *toggle_switch) {
+void toggle_switch_init(toggle_switch_t *toggle_switch, bool pullUp) {
     toggle_switch->pressed_at_ms = 0;
     toggle_switch->released_at_ms = 0;
+    toggle_switch->pullUp = pullUp;
 
     hal_gpio_callback(toggle_switch->pin, (gpio_callback_t)_gpio_callback, toggle_switch);
 }
@@ -15,7 +17,7 @@ void toggle_switch_init(toggle_switch_t *toggle_switch) {
 static void _gpio_callback(hal_gpio_pin_t pin, toggle_switch_t *toggle_switch) {
     uint8_t state = hal_gpio_read(pin);
 
-    if ( state == 0 ) {
+    if ( state == !toggle_switch->pullUp ) {
         toggle_switch->pressed_at_ms = hal_millis();
 
         if(toggle_switch->on_press != NULL) {
