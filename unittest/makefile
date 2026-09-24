@@ -32,7 +32,7 @@ CMOCK_ROOT=$(PROJECT_ROOT)/test_tools/cmock
 
 CFLAGS := -Wall -Wno-unused-parameter -Wno-unused-variable -g -O0 \
     -DHAL_STUB -DSTACK_BUILD=1001 -D_DEFAULT_SOURCE -DVERSION_STR="0.0.0" \
-	-DNVM_MIGRATIONS_VERSION=1 \
+	-DNVM_MIGRATIONS_VERSION=1 -DUNITY_USE_COMMAND_LINE_ARGS \
 	-std=c99
 
 # Source files for stub build
@@ -61,6 +61,7 @@ INC_DIRS=-I$(UNITY_ROOT)/src -I$(SRC_DIR) -I$(SRC_DIR)/hal -I$(SRC_DIR)/zigbee -
 SYMBOLS=
 
 .PHONY: all clean ci test/all
+.PRECIOUS: test/test_runners/%_runner.c
 
 unity/%:
 	$(MAKE) -f unity.mk $*
@@ -79,12 +80,18 @@ all: clean test/all
 # Generate test runner from test source
 test/test_runners/%_runner.c: test/%.c | $(UNITY_ROOT)/src
 	$(MKDIR) test/test_runners
-	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb $< $@
+	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb unity_runner_config.yaml $< $@
 
-# Compile and run a single test, example: make test/test_toggle_switch
-test/%: test/%.c test/test_runners/%_runner.c | $(UNITY_ROOT)/src $(CMOCK_ROOT)/src
+# Compile a test binary: make build/test_toggle_switch
+build/%: test/%.c test/test_runners/%_runner.c | $(UNITY_ROOT)/src $(CMOCK_ROOT)/src
 	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(COMMON_SRC) $(EXTRA_SRC_$*) $< test/test_runners/$*_runner.c -o $*$(TARGET_EXTENSION)
-	- ./$*$(TARGET_EXTENSION)
+
+# Compile all test binaries: make build/all
+build/all: $(addprefix build/,$(TEST_NAMES))
+
+# Compile and run a single test: make test/test_toggle_switch
+test/%: build/%
+	- ./$*$(TARGET_EXTENSION) $(if $(RUN_TEST),-f $(RUN_TEST))
 
 # Run all tests: make test/all
 test/all: $(addprefix test/,$(TEST_NAMES))
