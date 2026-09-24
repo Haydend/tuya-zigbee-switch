@@ -3,23 +3,57 @@
 #include "Mocktimer.h"
 #include "raptor/toggle_switch.h"
 #include "gpio_callback_helper.h"
+#include <string.h>
+
+typedef struct {
+  int calls;
+  void *last_arg;
+} press_spy_t;
+
+typedef struct {
+  int calls;
+  void *last_arg;
+  uint32_t last_hold_time;
+} release_spy_t;
+
+press_spy_t press_spy;
+release_spy_t release_spy;
 
 int on_press_cb_arg = 1;
-int on_press_calls = 0;
-void *on_press_last_arg = NULL;
+int on_release_cb_arg = 2;
+
 void on_press(void *arg) {
-  on_press_calls++;
-  on_press_last_arg = arg;
+  press_spy.calls++;
+  press_spy.last_arg = arg;
 }
 
-int on_release_cb_arg = 2;
-int on_release_calls = 0;
-void *on_release_last_arg = NULL;
-uint32_t on_release_last_on_time = 0;
-void on_release(void *arg, uint32_t on_time) {
-  on_release_calls++;
-  on_release_last_arg = arg;
-  on_release_last_on_time = on_time;
+void on_release(void *arg, uint32_t hold_time) {
+  release_spy.calls++;
+  release_spy.last_arg = arg;
+  release_spy.last_hold_time = hold_time;
+}
+
+void assert_press_called(int expected_calls, void *expected_arg) {
+  TEST_ASSERT_EQUAL(expected_calls, press_spy.calls);
+  if (expected_calls > 0) {
+    TEST_ASSERT_EQUAL_PTR(expected_arg, press_spy.last_arg);
+  }
+}
+
+void assert_press_not_called(void) {
+  TEST_ASSERT_EQUAL(0, press_spy.calls);
+}
+
+void assert_release_called(int expected_calls, void *expected_arg, uint32_t expected_hold_time) {
+  TEST_ASSERT_EQUAL(expected_calls, release_spy.calls);
+  if (expected_calls > 0) {
+    TEST_ASSERT_EQUAL_PTR(expected_arg, release_spy.last_arg);
+    TEST_ASSERT_EQUAL(expected_hold_time, release_spy.last_hold_time);
+  }
+}
+
+void assert_release_not_called(void) {
+  TEST_ASSERT_EQUAL(0, release_spy.calls);
 }
 
 void setUp(void)
@@ -28,8 +62,8 @@ void setUp(void)
   printf("\r\n");
 
   // Reset
-  on_press_calls = 0;
-  on_release_calls = 0;
+  memset(&press_spy, 0, sizeof(press_spy));
+  memset(&release_spy, 0, sizeof(release_spy));
 }
 
 void tearDown(void)
@@ -62,14 +96,8 @@ void test_pin_goes_low(void)
   hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 0);
   trigger_pin_change(0);
   
-  // on press callback triggered 
-  TEST_ASSERT_EQUAL(1, on_press_calls);
-  TEST_ASSERT_EQUAL(1, *(int *)on_press_last_arg);
-
-  TEST_ASSERT_EQUAL(0, on_release_calls);
-
-  //  on release callback not triggered 
-  TEST_ASSERT_EQUAL(0, on_release_calls);
+  assert_press_called(1, &on_press_cb_arg);
+  assert_release_not_called();
 }
 
 void test_pin_goes_low_no_on_press_callback_defined(void)
@@ -98,13 +126,8 @@ void test_pin_goes_high(void)
   hal_gpio_read_ExpectAndReturn(toggle_switch.pin, 1);
   trigger_pin_change(0);
   
-  // on release callback triggered once
-  TEST_ASSERT_EQUAL(1, on_release_calls);
-  TEST_ASSERT_EQUAL(2, *(int *)on_release_last_arg);
-  TEST_ASSERT_EQUAL(10, on_release_last_on_time);
-
-  //  on press callback not triggered 
-  TEST_ASSERT_EQUAL(0, on_press_calls);
+  assert_release_called(1, &on_release_cb_arg, 10);
+  assert_press_not_called();
 }
 
 void test_pin_goes_high_no_on_release_callback_defined(void)
