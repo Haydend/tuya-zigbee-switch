@@ -9,7 +9,8 @@
                 "test_encoder",
                 "test_encoder_cluster",
                 "test_step_command_handler",
-                "test_push_button"
+                "test_push_button",
+                "test_on_off_client_cluster"
             ]
         },
         {
