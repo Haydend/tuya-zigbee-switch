@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Unit Tests",
+            "type": "shell",
+            "command": "make",
+            "args": ["unittest/build/all"],
+            "group": "build",
+            "problemMatcher": "$gcc"
+        }
+    ]
+}

@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "inputs": [
+        {
+            "id": "testBinary",
+            "type": "pickString",
+            "description": "Which test to debug?",
+            "options": [
+                "test_encoder",
+                "test_encoder_cluster",
+                "test_step_command_handler",
+                "test_toggle_switch"
+            ]
+        },
+        {
+            "id": "testFilter",
+            "type": "promptString",
+            "description": "Filter to a specific test function (substring match)",
+            "default": ""
+        }
+    ],
+    "configurations": [
+        {
+            "name": "Debug Unit Test",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/unittest/${input:testBinary}.out",
+            "cwd": "${workspaceFolder}/unittest",
+            "preLaunchTask": "Build Unit Tests"
+        },
+        {
+            "name": "Debug Unit Test (filtered)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/unittest/${input:testBinary}.out",
+            "args": ["-f", "${input:testFilter}"],
+            "cwd": "${workspaceFolder}/unittest",
+            "preLaunchTask": "Build Unit Tests"
+        }
+    ]
+}

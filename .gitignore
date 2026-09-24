@@ -2,7 +2,9 @@ build
 tests/build
 sdk
 toolchain
-.vscode
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 .venv
 stub_nvm_data
 
