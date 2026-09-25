@@ -10,5 +10,5 @@ typedef struct {
 
 void on_off_client_cluster_add_to_endpoint(on_off_client_cluster *cluster, hal_zigbee_endpoint *endpoint);
 void on_off_client_cluster_send_toggle_on_off_command(on_off_client_cluster *cluster);
-// test
+
 #endif
