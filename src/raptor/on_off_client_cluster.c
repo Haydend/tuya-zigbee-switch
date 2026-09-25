@@ -15,7 +15,7 @@ void on_off_client_cluster_add_to_endpoint(on_off_client_cluster *cluster, hal_z
     endpoint->cluster_count++;  
 }
 
-void send_toggle_on_off_command(on_off_client_cluster *cluster) {
+void on_off_client_cluster_send_toggle_on_off_command(on_off_client_cluster *cluster) {
     if (hal_zigbee_get_network_status() != HAL_ZIGBEE_NETWORK_JOINED) {
         return;
     }

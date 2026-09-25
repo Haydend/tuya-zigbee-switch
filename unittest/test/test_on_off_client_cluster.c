@@ -37,7 +37,7 @@ void tearDown(void)
 {
 }
 
-void test_send_toggle_on_off_command(void) 
+void test_on_off_client_cluster_send_toggle_on_off_command(void) 
 {
     // Always report the zigbee status as connected
     hal_zigbee_get_network_status_ExpectAndReturn(HAL_ZIGBEE_NETWORK_JOINED);
@@ -45,7 +45,7 @@ void test_send_toggle_on_off_command(void)
     // Capture zigbee commands sent
     hal_zigbee_send_cmd_to_bindings_Stub(captured_send_cmd_to_bindings);
 
-    send_toggle_on_off_command(&cluster);
+    on_off_client_cluster_send_toggle_on_off_command(&cluster);
 
     // Check one command was sent 
     TEST_ASSERT_EQUAL_MESSAGE(1, send_cmd_spy.calls, "Unexpected number of commands sent");
