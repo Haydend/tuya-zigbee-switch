@@ -158,3 +158,9 @@ void test_pin_goes_high_no_on_release_callback_defined(void)
   
   // No seg fault!
 }
+
+void test_push_button_init_from_config(void)
+{
+  char config[] = "IPB;2Du;50;0;0";
+  push_button_init_from_config(config);
+}

@@ -23,4 +23,6 @@ typedef struct {
 
 void push_button_init(push_button_t *push_button, bool pullUp);
 
+push_button_t *push_button_init_from_config(char* config);
+
 #endif // _PUSH_BUTTON_H_
