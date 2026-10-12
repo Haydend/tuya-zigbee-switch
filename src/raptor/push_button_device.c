@@ -7,15 +7,59 @@
 #include <string.h>
 #include <stdlib.h>
 
+typedef void (*push_button_on_press_callback_t)(void *);
+typedef void (*push_button_on_release_callback_t)(void *, uint32_t hold_time);
+
 typedef struct {
     hal_gpio_pin_t                      pin;
     hal_gpio_pull_t                     pin_pull;
+
+    push_button_on_press_callback_t     on_press;
+    void *                              on_press_callback_param;
+    uint32_t                            pressed_at_ms;
+
+    push_button_on_release_callback_t   on_release;
+    void *                              on_release_callback_param;
+    uint32_t                            released_at_ms;
 } PushButtonData;
+
+static void _gpio_callback(hal_gpio_pin_t pin, Device *self);
 
 static void init(Device *self) {
     PushButtonData *data = (PushButtonData *)self->private_data;
 
     printf("Initialising Push Button Device, pin %d\n", data->pin);
+
+    data->pressed_at_ms = 0;
+    data->released_at_ms = 0;
+
+    hal_gpio_callback(data->pin, (gpio_callback_t)_gpio_callback, self);
+}
+
+static bool _is_pin_pulled_up(PushButtonData *data) {
+    return data->pin_pull == HAL_GPIO_PULL_UP || data->pin_pull == HAL_GPIO_PULL_UP_1M;
+}
+
+static void _gpio_callback(hal_gpio_pin_t pin, Device *self) {
+    PushButtonData *data = (PushButtonData *)self->private_data;
+    uint8_t state = hal_gpio_read(pin);
+
+    if ( state == !_is_pin_pulled_up(data) ) {
+        data->pressed_at_ms = hal_millis();
+
+        if(data->on_press != NULL) {
+            data->on_press(data->on_press_callback_param);
+        }
+
+    } else {
+        data->released_at_ms = hal_millis();
+
+        if(data->on_release != NULL) {
+            uint32_t hold_time = data->released_at_ms - data->pressed_at_ms;
+            data->on_release(data->on_release_callback_param, hold_time);
+        }
+    }
+
 }
 
 const DeviceOperations push_button_device_ops = {
