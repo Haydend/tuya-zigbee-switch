@@ -9,7 +9,7 @@ typedef void (*push_button_on_release_callback_t)(void *, uint32_t hold_time);
 
 typedef struct {
     hal_gpio_pin_t                      pin;
-    bool                                pullUp; // Is pin pulled up
+    hal_gpio_pull_t                     pin_pull;
 
     push_button_on_press_callback_t     on_press;
     void *                              on_press_callback_param;
@@ -21,7 +21,7 @@ typedef struct {
 
 } push_button_t;
 
-void push_button_init(push_button_t *push_button, bool pullUp);
+void push_button_init(push_button_t *push_button);
 
 push_button_t *push_button_init_from_config(char* config);
 

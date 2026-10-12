@@ -37,14 +37,14 @@ void tearDown(void)
 {
 }
 
-void _setup_push_button(push_button_t *push_button, bool pullUp)
+void _setup_push_button(push_button_t *push_button)
 {
   // Setup Encoder
   push_button->pin = 1;
 
   hal_gpio_callback_StubWithCallback(captured_hal_gpio_callback);
 
-  push_button_init(push_button, pullUp);
+  push_button_init(push_button);
 
   push_button->on_press = (push_button_on_press_callback_t)on_press;
   push_button->on_press_callback_param = &on_press_cb_arg;
@@ -56,7 +56,8 @@ void _setup_push_button(push_button_t *push_button, bool pullUp)
 void test_pin_goes_low(void)
 {
   push_button_t push_button = {};
-  _setup_push_button(&push_button, true);
+  push_button.pin_pull = HAL_GPIO_PULL_UP;
+  _setup_push_button(&push_button);
 
   // Pin changes
   hal_millis_IgnoreAndReturn(10);
@@ -75,7 +76,8 @@ void test_pin_goes_low(void)
 void test_pin_goes_high_and_is_pull_down(void)
 {
   push_button_t push_button = {};
-  _setup_push_button(&push_button, false); // Set as Pull Down
+  push_button.pin_pull = HAL_GPIO_PULL_DOWN; // Set as Pull Down
+  _setup_push_button(&push_button); 
 
   // Button is pressed
   hal_millis_IgnoreAndReturn(10);
@@ -95,7 +97,8 @@ void test_pin_goes_low_no_on_press_callback_defined(void)
   // Checking logic does not hit seg fault
 
   push_button_t push_button = {};
-  _setup_push_button(&push_button, true);
+  push_button.pin_pull = HAL_GPIO_PULL_UP;
+  _setup_push_button(&push_button);
   push_button.on_press = NULL;
 
   // Pin changes
@@ -109,7 +112,8 @@ void test_pin_goes_low_no_on_press_callback_defined(void)
 void test_pin_goes_high(void)
 {
   push_button_t push_button = {};
-  _setup_push_button(&push_button, true);
+  push_button.pin_pull = HAL_GPIO_PULL_UP;
+  _setup_push_button(&push_button);
 
   // Pin changes
   hal_millis_IgnoreAndReturn(10);
@@ -129,7 +133,8 @@ void test_pin_goes_high(void)
 void test_pin_goes_low_and_is_pull_down(void)
 {
   push_button_t push_button = {};
-  _setup_push_button(&push_button, false); // Set as Pull Down
+  push_button.pin_pull = HAL_GPIO_PULL_DOWN; // Set as Pull Down
+  _setup_push_button(&push_button); 
 
   // Button is pressed
   hal_millis_IgnoreAndReturn(10);
@@ -148,7 +153,8 @@ void test_pin_goes_low_and_is_pull_down(void)
 void test_pin_goes_high_no_on_release_callback_defined(void)
 {
   push_button_t push_button = {};
-  _setup_push_button(&push_button, true);
+  push_button.pin_pull = HAL_GPIO_PULL_UP;
+  _setup_push_button(&push_button);
   push_button.on_release = NULL;
 
   // Pin changes
@@ -159,8 +165,20 @@ void test_pin_goes_high_no_on_release_callback_defined(void)
   // No seg fault!
 }
 
-void test_push_button_init_from_config(void)
+void test_push_button_init_from_config(void) 
 {
   char config[] = "IPB;2Du;50;0;0";
-  push_button_init_from_config(config);
+
+  char* config_pin = &config[4];
+  hal_gpio_pin_t expected_pin = 99;
+  hal_gpio_parse_pin_ExpectAndReturn(config_pin, expected_pin);
+
+  char* config_pin_pull = &config[6];
+  hal_gpio_pull_t expected_pull = HAL_GPIO_PULL_UP;
+  hal_gpio_parse_pull_ExpectAndReturn(config_pin_pull, expected_pull);
+  
+  push_button_t* push_button = push_button_init_from_config(config);
+  TEST_ASSERT_EQUAL(push_button->pin, expected_pin);
+  TEST_ASSERT_EQUAL(push_button->pin_pull, expected_pull);
+
 }
