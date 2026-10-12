@@ -53,10 +53,15 @@ void test_pin_goes_low(void)
     Device* push_button = push_button_from_config(config);
     
     push_button->ops->init(push_button);
+    push_button->ops->register_callback(push_button, 0, on_press, &on_press_cb_arg);
 
-    // Pin changes
+    // Pin changes to low
     hal_millis_IgnoreAndReturn(10);
-    hal_gpio_read_ExpectAndReturn(expected_pin, 1);
+    hal_gpio_read_ExpectAndReturn(expected_pin, 0);
     trigger_pin_change(expected_pin);
+
+    // Check on_press callback triggered with expected args
+    ASSERT_SPY_CALLED(press_spy, 1);
+    TEST_ASSERT_EQUAL_PTR(&on_press_cb_arg, press_spy.history[0].arg);
 }
   

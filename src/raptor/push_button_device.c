@@ -62,8 +62,25 @@ static void _gpio_callback(hal_gpio_pin_t pin, Device *self) {
 
 }
 
+static void register_callback(Device *self, int i, void *cb, void *cb_param) {
+    PushButtonData *data = (PushButtonData *)self->private_data;
+
+    if(i == 0) {
+        data->on_press = cb;
+        data->on_press_callback_param = cb_param;
+
+    } else if(i == 1) {
+        data->on_release = cb;
+        data->on_release_callback_param = cb_param;
+
+    } else {
+        printf("Unsupported callback index for push button device: %d", i);
+    }
+}
+
 const DeviceOperations push_button_device_ops = {
-    .init = init
+    .init = init,
+    .register_callback = register_callback
 };
 
 char *seek_until(char *cursor, char needle) {
