@@ -78,9 +78,14 @@ static void register_callback(Device *self, int i, void *cb, void *cb_param) {
     }
 }
 
+static void* get_callback(Device *self, int i) {
+    return NULL;
+}
+
 const DeviceOperations push_button_device_ops = {
     .init = init,
-    .register_callback = register_callback
+    .register_callback = register_callback,
+    .get_callback = get_callback
 };
 
 char *seek_until(char *cursor, char needle) {

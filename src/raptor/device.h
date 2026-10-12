@@ -6,6 +6,7 @@ typedef struct Device Device;
 typedef struct {
     void (*init)(Device *self);
     void (*register_callback)(Device *self, int i, void* cb, void* cb_param);
+    void* (*get_callback)(Device *self, int i);
 } DeviceOperations;
 
 struct Device {
