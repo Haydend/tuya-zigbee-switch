@@ -180,5 +180,4 @@ void test_push_button_init_from_config(void)
   push_button_t* push_button = push_button_init_from_config(config);
   TEST_ASSERT_EQUAL(push_button->pin, expected_pin);
   TEST_ASSERT_EQUAL(push_button->pin_pull, expected_pull);
-
 }
