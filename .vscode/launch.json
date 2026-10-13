@@ -12,7 +12,8 @@
                 "test_push_button",
                 "test_on_off_client_cluster",
                 "test_core",
-                "test_push_button_device"
+                "test_push_button_device",
+                "test_parser"
             ]
         },
         {

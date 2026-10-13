@@ -6,6 +6,8 @@
 #include "spy.h"
 #include <stdbool.h>
 #include "raptor/device.h"
+#include "raptor/push_button_device.h"
+#include "raptor/on_off_client_cluster_device.h"
 
 typedef struct { void *arg; } press_args_t;
 typedef struct { void *arg; uint32_t hold_time; } release_args_t;
@@ -34,9 +36,6 @@ void setUp(void)
 
   hal_gpio_callback_StubWithCallback(captured_hal_gpio_callback);
 }
-
-extern Device* push_button_from_config(char *config_str);
-extern Device* on_off_client_cluster_from_config(char *config);
 
 void test_pin_goes_low(void)
 {

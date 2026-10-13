@@ -1,10 +1,7 @@
 #include "device.h"
 #include "hal/printf_selector.h"
 #include <stdlib.h>
-
-typedef struct {
-    char* name
-} OnOffClientClusterData;
+#include "on_off_client_cluster_device.h"
 
 static void send_toggle_command(Device *self) {
     OnOffClientClusterData *data = (OnOffClientClusterData *)self->private_data;
